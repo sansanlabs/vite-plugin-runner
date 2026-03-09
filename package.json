@@ -1,6 +1,6 @@
 {
   "name": "@sansanlabs/vite-plugin-runner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run commands when Vite starts or a file changes",
   "type": "module",
   "main": "./dist/index.cjs",
