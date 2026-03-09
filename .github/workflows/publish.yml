@@ -16,6 +16,8 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: npm install
+      - run: ls -la src/
+      - run: cat tsup.config.ts
       - run: npm publish
 
         env:
