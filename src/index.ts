@@ -274,7 +274,7 @@ export function run(
      */
     buildStart() {
       for (const runner of list) {
-        if (isBuild && runner.build === false) continue;
+        if (isBuild && !runner.build) continue;
         if (runner.startup === false) continue;
         executeRunner(runner, "", silent);
       }
