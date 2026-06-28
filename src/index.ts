@@ -160,14 +160,17 @@ function matchesPattern(filePath: string, pattern: string | string[]): boolean {
  */
 function executeRunner(runner: Runner, file: string, silent: boolean): void {
   // Resolve the command — call as function if dynamic, use as-is if static
-  const command = typeof runner.run === "function" ? runner.run(file) : runner.run;
+  const command =
+    typeof runner.run === "function" ? runner.run(file) : runner.run;
   const isSilent = runner.silent ?? silent;
 
   // Separate the executable from its arguments for execFileSync
   const [bin, ...args] = command;
 
   if (!isSilent) {
-    console.log(`\x1b[36m[${runner.name}]\x1b[0m Running: ${command.join(" ")}`);
+    console.log(
+      `\x1b[36m[${runner.name}]\x1b[0m Running: ${command.join(" ")}`,
+    );
   }
 
   try {
@@ -180,7 +183,8 @@ function executeRunner(runner: Runner, file: string, silent: boolean): void {
 
     // Display the done message if defined
     if (runner.done) {
-      const message = typeof runner.done === "function" ? runner.done(file) : runner.done;
+      const message =
+        typeof runner.done === "function" ? runner.done(file) : runner.done;
       console.log(`\x1b[32m[${runner.name}]\x1b[0m ${message}`);
     }
   } catch (err: unknown) {
@@ -242,20 +246,35 @@ function shouldRun(runner: Runner, filePath: string): boolean {
  *   },
  * ])
  */
-export function run(runners: Runner | Runner[], options: PluginOptions = {}): Plugin {
+export function run(
+  runners: Runner | Runner[],
+  options: PluginOptions = {},
+): Plugin {
   // Normalize to array for uniform processing
   const list = Array.isArray(runners) ? runners : [runners];
   const silent = options.silent ?? false;
+  let isBuild = false;
 
   return {
     name: "vite-plugin-runner",
 
     /**
+     * Vite hook: called after the config is resolved.
+     * Used to detect whether Vite is running in build or dev mode,
+     * so that `buildStart` can respect the `build` option per runner.
+     */
+    configResolved(config) {
+      isBuild = config.command === "build";
+    },
+
+    /**
      * Vite hook: called when the build starts (both dev and production).
      * Runs all runners that have `startup` enabled (default: true).
+     * Skips runners with `build: false` when running in production build mode.
      */
     buildStart() {
       for (const runner of list) {
+        if (isBuild && runner.build === false) continue;
         if (runner.startup === false) continue;
         executeRunner(runner, "", silent);
       }
